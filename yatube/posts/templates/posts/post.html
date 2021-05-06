@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Пост пользователя{% endblock %}
+{% block content %}
+
+<main role="main" class="container">
+  <div class="row">
+
+{% include 'includes/authors_card.html' %}
+      
+      <div class="col-md-9">
+        <!-- Пост -->
+        {% include "includes/post_item.html" with post=post %}
+
+      </div>
+  </div>
+</main>
+
+{% endblock %}

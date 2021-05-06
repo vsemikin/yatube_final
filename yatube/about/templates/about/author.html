@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Об авторе проекта{% endblock %}
+{% block content %}
+{% load user_filters %}
+  <main role="main" class="container">
+    <div class="row">
+      <!-- Левый вспомогательный блок -->
+      <div class="col-md-3 mb-3 mt-1">
+        <div class="card">
+          <div class="card-body">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">
+                <div class="h3">
+                  Об авторе
+                </div> 
+              </li>
+              <li class="list-group-item">
+                <div class="h6 text-muted">
+                  <a href="https://zen.yandex.ru/media/id/5a85a104fd96b16db42f83f8/smeshnye-obiavleniia-o-prodaje-koshek-na-avito-5a868a12168a913d32da7ee0">Купить кота</a>
+                </div>
+              </li>
+            </ul>                                               
+          </div>                    
+        </div>                
+      </div>
+      <!-- Тело страницы -->
+      <div class="col-md-9">
+        <div class="card-body">                    
+          <div class="card-text">
+            <p>
+                Меня зовут <a href="https://vk.com/id4140872">Владимир</a>, 
+                я студент 16 когорты факультета Бэкенд Яндекс Практикум.<br>
+                Этот сайт моя "проба пера" в разработке.<br>
+                В мире хватает примеров для того, чтобы понять, что труд не проходит зря,
+                и так я решил вновь попробовать себя в разработке.<br>
+                Программирование никогда мне не давалось, но "практикум" дал нужный
+                толчок, и я почувствовал, что шанс перейти по ту сторону экрана есть.<br>
+                Лёгкой эту дорогу не назовёшь, но как бы то ни было, лишним точно не будет!   
+
+            </p>
+          </div>                    
+        </div>                
+      </div>            
+    </div>        
+  </main>
+{% endblock %}
