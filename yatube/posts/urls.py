@@ -14,7 +14,7 @@ urlpatterns = [
         name='post_edit'
     ),
     path(
-        '<username>/<int:post_id>/<int:comment_id>/',
+        '<username>/<int:post_id>/comment/',
         views.add_comment,
         name='add_comment'
     ),

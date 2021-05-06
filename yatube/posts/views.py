@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PostForm, CommentForm
-from .models import Group, Post, Comment, Follow
+from .models import Group, Post, Follow
 
 User = get_user_model()
 
@@ -80,24 +80,17 @@ def profile(request, username):
 def post_view(request, username, post_id):
     """The function passes data to the page template of a specific post."""
     post = get_object_or_404(Post, id=post_id, author__username=username)
+    form = CommentForm()
     comments = post.comments.all()
-    form = CommentForm(request.POST or None)
-    if request.method == 'GET' or not form.is_valid():
-        return render(
-            request, 'posts/post.html', {
-                'author': post.author,
-                'post': post,
-                'form': form,
-                'comments': comments,
-                'is_post_view': True
-            }
-        )
-    else:
-        comment = form.save(commit=False)
-        comment.post = post
-        comment.author = request.user
-        comment.save()
-        return redirect('post_view', username, post.id)
+    return render(
+        request, 'posts/post.html', {
+            'author': post.author,
+            'post': post,
+            'form': form,
+            'comments': comments,
+            'is_post_view': True
+        }
+    )
 
 
 @login_required
@@ -140,22 +133,21 @@ def server_error(request):
     return render(request, 'misc/500.html', status=500)
 
 
-def add_comment(request, username, post_id, comment_id):
-    """The function transfers data to the template of the comment edit page
-    and saves the changes.."""
+@login_required
+def add_comment(request, username, post_id):
+    """The function passes data to the comment page template
+    and saves changes."""
     post = get_object_or_404(Post, id=post_id, author__username=username)
-    comment = get_object_or_404(Comment, id=comment_id)
-    if comment.author != request.user:
-        return redirect('post_view', username, post.id)
-    form = CommentForm(request.POST or None, instance=comment)
+    form = CommentForm(request.POST or None)
     if request.method == 'GET' or not form.is_valid():
         return render(
-            request,
-            'posts/new.html',
-            {'form': form, 'is_new': False}
+            request, 'includes/comments.html', {'form': form, 'post': post}
         )
     else:
-        form.save()
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
         return redirect('post_view', username, post.id)
 
 
