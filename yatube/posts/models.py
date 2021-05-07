@@ -79,13 +79,14 @@ class Comment(models.Model):
 
 class Follow(models.Model):
     """Subscription model for community author publications."""
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name='follower',
         verbose_name='Подписчик'
     )
     author = models.ManyToManyField(
-        Post,
-        related_name='following',
-        verbose_name='Блогер'
+        User, related_name='following', verbose_name='Блогер'
     )
+
+    # class Meta:
+    #     unique_together = ('user', 'author')

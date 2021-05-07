@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import PostForm, CommentForm
-from .models import Group, Post, Follow
+from .forms import CommentForm, PostForm
+from .models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -68,10 +68,12 @@ def profile(request, username):
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
+    profile = get_object_or_404(Follow, user__username=username)
     return render(
         request, 'posts/profile.html', {
             'author': user,
             'page': page,
+            'profile': profile,
             'is_post_view': False
         }
     )
@@ -165,11 +167,14 @@ def follow_index(request):
 
 @login_required
 def profile_follow(request, username):
-    """."""
-    Follow.user = request.user
-    
+    """The function subscribes to the author."""
+    Follow.objects.create(user=request.user, author=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    """."""
+    """The function removes the subscriber from the author."""
+    Follow.objects.delete(user=request.user, author=username)
+
+# game = Game.objects.get(name="Some Game")  # Gets the game obj
+# sub_count = Subscription.objects.filter(game=game).count() 
