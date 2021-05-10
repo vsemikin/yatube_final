@@ -84,9 +84,11 @@ class Follow(models.Model):
         related_name='follower',
         verbose_name='Подписчик'
     )
-    author = models.ManyToManyField(
-        User, related_name='following', verbose_name='Блогер'
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Блогер'
     )
 
-    # class Meta:
-    #     unique_together = ('user', 'author')
+    class Meta:
+        unique_together = ('user', 'author')

@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import CommentForm, PostForm
+from .forms import PostForm, CommentForm
 from .models import Follow, Group, Post
 
 User = get_user_model()
@@ -68,12 +68,10 @@ def profile(request, username):
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    profile = get_object_or_404(Follow, user__username=username)
     return render(
         request, 'posts/profile.html', {
             'author': user,
             'page': page,
-            'profile': profile,
             'is_post_view': False
         }
     )
@@ -157,7 +155,7 @@ def add_comment(request, username, post_id):
 def follow_index(request):
     """The function returns the posts of the authors that
     the current user is following."""
-    authors = request.user.following.all()
+    authors = request.user.follower.all()
     posts = authors.posts.all()
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
@@ -168,13 +166,18 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     """The function subscribes to the author."""
-    Follow.objects.create(user=request.user, author=username)
+    # if username != request.user.username:
+    user = User.objects.get(username=username)
+    Follow.objects.create(user=request.user, author=user)
+    return redirect('profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
     """The function removes the subscriber from the author."""
-    Follow.objects.delete(user=request.user, author=username)
+    user = User.objects.get(username=username)
+    Follow.objects.filter(user=request.user, author=user).delete()
+    return redirect('profile', username)
 
 # game = Game.objects.get(name="Some Game")  # Gets the game obj
-# sub_count = Subscription.objects.filter(game=game).count() 
+# sub_count = Subscription.objects.filter(game=game).count()
