@@ -25,7 +25,7 @@ class Post(models.Model):
     )
     image = models.ImageField(
         'Изображение',
-        upload_to='posts',
+        upload_to='posts/',
         blank=True,
         null=True
     )

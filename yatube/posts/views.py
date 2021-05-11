@@ -155,29 +155,38 @@ def add_comment(request, username, post_id):
 def follow_index(request):
     """The function returns the posts of the authors that
     the current user is following."""
-    authors = request.user.follower.all()
-    posts = authors.posts.all()
+    follow = Follow.objects.filter(user=request.user)
+    authors = []
+    for i in follow:
+        authors.append(i.author)
+    posts = Post.objects.filter(author__in=authors)
+    # posts = Post.objects.filter(follow__user=request.user)
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, 'follow.html', {'page': page})
+    return render(
+        request, 'follow.html', {'page': page, 'is_post_view': False}
+    )
 
 
 @login_required
 def profile_follow(request, username):
     """The function subscribes to the author."""
-    # if username != request.user.username:
-    user = User.objects.get(username=username)
-    Follow.objects.create(user=request.user, author=user)
+    if request.user.username != username:
+        user = User.objects.get(username=username)
+        Follow.objects.create(user=request.user, author=user)
     return redirect('profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
     """The function removes the subscriber from the author."""
-    user = User.objects.get(username=username)
-    Follow.objects.filter(user=request.user, author=user).delete()
+    if request.user.username != username:
+        user = User.objects.get(username=username)
+        Follow.objects.filter(user=request.user, author=user).delete()
     return redirect('profile', username)
+
+
 
 # game = Game.objects.get(name="Some Game")  # Gets the game obj
 # sub_count = Subscription.objects.filter(game=game).count()
