@@ -174,19 +174,13 @@ def profile_follow(request, username):
     """The function subscribes to the author."""
     if request.user.username != username:
         user = User.objects.get(username=username)
-        Follow.objects.create(user=request.user, author=user)
+        Follow.objects.get_or_create(user=request.user, author=user)
     return redirect('profile', username)
 
 
 @login_required
 def profile_unfollow(request, username):
     """The function removes the subscriber from the author."""
-    if request.user.username != username:
-        user = User.objects.get(username=username)
-        Follow.objects.filter(user=request.user, author=user).delete()
+    user = User.objects.get(username=username)
+    Follow.objects.filter(user=request.user, author=user).delete()
     return redirect('profile', username)
-
-
-
-# game = Game.objects.get(name="Some Game")  # Gets the game obj
-# sub_count = Subscription.objects.filter(game=game).count()
