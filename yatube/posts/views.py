@@ -155,18 +155,15 @@ def add_comment(request, username, post_id):
 def follow_index(request):
     """The function returns the posts of the authors that
     the current user is following."""
-    follow = Follow.objects.filter(user=request.user)
+    follow = request.user.follower.all()
     authors = []
     for i in follow:
         authors.append(i.author)
     posts = Post.objects.filter(author__in=authors)
-    # posts = Post.objects.filter(follow__user=request.user)
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(
-        request, 'follow.html', {'page': page, 'is_post_view': False}
-    )
+    return render(request, 'follow.html', {'page': page})
 
 
 @login_required
