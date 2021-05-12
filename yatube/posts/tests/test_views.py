@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+from http import HTTPStatus
 
 from django import forms
 from django.conf import settings
@@ -218,3 +219,91 @@ class PaginatorViewsTest(TestCase):
         on the second page."""
         response = self.client.get(reverse('index') + '?page=2')
         self.assertEqual(len(response.context.get('page').object_list), 3)
+
+
+class FollowAndCommentViewsTest(TestCase):
+    """The class checks the operation of the subscriptions and
+    comments system."""
+    @classmethod
+    def setUpClass(cls):
+        """Creating a test object."""
+        super().setUpClass()
+        cls.user = User.objects.create(username='vsemikin')
+        cls.post = Post.objects.create(
+            text='Тестовый текст',
+            author=cls.user,
+        )
+
+    def setUp(self):
+        """Setting the data for testing."""
+        self.guest_client = Client()
+        self.user = User.objects.create(username='oleg')
+        self.authorized_client = Client()
+        self.authorized_client.force_login(self.user)
+        self.another_user = User.objects.create(username='galina')
+        self.another_authorized_client = Client()
+        self.another_authorized_client.force_login(self.another_user)
+        self.authorized_client.get(
+            reverse('profile_follow', args=[
+                f'{FollowAndCommentViewsTest.post.author.username}'
+            ]
+            )
+        )
+
+    def test_authorized_user_subscribe(self):
+        """The function checks whether an authorized user can subscribe to other users
+        and remove them from subscriptions."""
+        self.assertEqual(
+            FollowAndCommentViewsTest.post.author.following.count(), 1
+        )
+
+    def test_authorized_user_remove_subscriptions(self):
+        """The function checks whether an authorized user can subscribe to other users
+        and remove them from subscriptions."""
+        self.authorized_client.get(
+            reverse('profile_unfollow', args=[
+                f'{FollowAndCommentViewsTest.post.author.username}'
+            ]
+            )
+        )
+        self.assertEqual(
+            FollowAndCommentViewsTest.post.author.following.count(), 0
+        )
+
+    def test_new_user_entry_appears_in_following(self):
+        """The function checks whether a new user entry appears in the feed
+        of those who are subscribed to it and does not appear in the feed
+        of those who are not subscribed to it."""
+        response = self.authorized_client.get(reverse('follow_index'))
+        self.assertEqual(len(response.context.get('page').object_list), 1)
+
+    def test_new_user_entry_appears_in_not_following(self):
+        """The function checks whether a new user entry appears in the feed
+        of those who are subscribed to it and does not appear in the feed
+        of those who are not subscribed to it."""
+        response = self.another_authorized_client.get(reverse('follow_index'))
+        self.assertEqual(len(response.context.get('page').object_list), 0)
+
+    def test_authorized_user_can_comment_on_posts(self):
+        """The function checks that only an authorized user can comment
+        on posts."""
+        response = self.authorized_client.get(
+            reverse('add_comment', args=(
+                f'{FollowAndCommentViewsTest.post.author.username}',
+                FollowAndCommentViewsTest.post.id
+            )
+            )
+        )
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+
+    def test_guest_user_can_not_comment_on_posts(self):
+        """The function checks that only an authorized user can comment
+        on posts."""
+        response = self.guest_client.get(
+            reverse('add_comment', args=(
+                f'{FollowAndCommentViewsTest.post.author.username}',
+                FollowAndCommentViewsTest.post.id
+            )
+            )
+        )
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
