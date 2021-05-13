@@ -281,7 +281,7 @@ class FollowAndCommentViewsTest(TestCase):
             )
             )
         )
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response.status_code, HTTPStatus.FOUND)
 
     def test_guest_user_can_not_comment_on_posts(self):
         """The function checks that only an authorized user can comment

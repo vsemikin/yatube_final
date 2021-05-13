@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import PostForm, CommentForm
+from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post
 
 User = get_user_model()
@@ -140,9 +140,7 @@ def add_comment(request, username, post_id):
     post = get_object_or_404(Post, id=post_id, author__username=username)
     form = CommentForm(request.POST or None)
     if request.method == 'GET' or not form.is_valid():
-        return render(
-            request, 'includes/comments.html', {'form': form, 'post': post}
-        )
+        return redirect('post_view', username, post.id)
     else:
         comment = form.save(commit=False)
         comment.post = post
@@ -155,11 +153,7 @@ def add_comment(request, username, post_id):
 def follow_index(request):
     """The function returns the posts of the authors that
     the current user is following."""
-    follow = request.user.follower.all()
-    authors = []
-    for i in follow:
-        authors.append(i.author)
-    posts = Post.objects.filter(author__in=authors)
+    posts = Post.objects.filter(author__following__user=request.user)
     paginator = Paginator(posts, PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
@@ -169,8 +163,8 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     """The function subscribes to the author."""
-    if request.user.username != username:
-        user = User.objects.get(username=username)
+    user = User.objects.filter(username=username).first()
+    if request.user.username != username and user:
         Follow.objects.get_or_create(user=request.user, author=user)
     return redirect('profile', username)
 
@@ -178,6 +172,7 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     """The function removes the subscriber from the author."""
-    user = User.objects.get(username=username)
-    Follow.objects.filter(user=request.user, author=user).delete()
+    user = User.objects.filter(username=username).first()
+    if user:
+        Follow.objects.filter(user=request.user, author=user).delete()
     return redirect('profile', username)
