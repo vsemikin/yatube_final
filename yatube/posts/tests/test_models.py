@@ -22,7 +22,7 @@ class PostModelTest(TestCase):
         """The function checks the value of the __str__
         field in the model object."""
         post = PostModelTest.post
-        expected = post.text
+        expected = post.text[:15]
         self.assertEqual(str(post), expected)
 
 

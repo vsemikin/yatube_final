@@ -17,10 +17,9 @@ class PostForm(forms.ModelForm):
 
 class CommentForm(forms.ModelForm):
     """Form for adding a comment."""
+    text = forms.CharField(widget=forms.Textarea)
+
     class Meta:
         model = Comment
-        fields = ('text',)
-        widgets = {
-            'text': forms.Textarea
-        }
+        exclude = ('post', 'author', 'created')
         help_texts = {'text': 'Без мата, а то сам понимаешь..'}

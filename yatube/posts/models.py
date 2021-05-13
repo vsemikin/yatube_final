@@ -36,7 +36,7 @@ class Post(models.Model):
         verbose_name_plural = 'Посты'
 
     def __str__(self):
-        return self.text[:100]
+        return self.text[:15]
 
 
 class Group(models.Model):

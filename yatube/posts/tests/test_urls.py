@@ -27,7 +27,7 @@ class YatubeURLTests(TestCase):
         )
         cls.templates_url_names_public = {
             'posts/index.html': '',
-            'group.html': f'/group/{cls.group.slug}/',
+            'posts/group.html': f'/group/{cls.group.slug}/',
             'posts/profile.html': f'/{cls.user}/',
             'posts/post.html': f'/{cls.user}/{cls.post.id}/'
         }
@@ -64,9 +64,9 @@ class YatubeURLTests(TestCase):
     def test_private_url_guest_client(self):
         """The function checks the availability of private pages for an
         anonymous user and a user who is not the author of the post."""
-        for template, _ in YatubeURLTests.templates_url_names_private:
-            with self.subTest(address=_):
-                response = self.guest_client.get(_)
+        for _, address in YatubeURLTests.templates_url_names_private:
+            with self.subTest(address=address):
+                response = self.guest_client.get(address)
                 self.assertEqual(response.status_code, HTTPStatus.FOUND)
         response = self.guest_client.get(
             YatubeURLTests.post_new_url, follow=True
@@ -112,7 +112,7 @@ class YatubeURLTests(TestCase):
     def test_url_use_correct_template_private_pages(self):
         """The function checks whether the address matches
         the page template."""
-        for template, _ in YatubeURLTests.templates_url_names_private:
-            with self.subTest(address=_):
-                response = self.post_author.get(_)
+        for template, address in YatubeURLTests.templates_url_names_private:
+            with self.subTest(address=address):
+                response = self.post_author.get(address)
                 self.assertTemplateUsed(response, template)

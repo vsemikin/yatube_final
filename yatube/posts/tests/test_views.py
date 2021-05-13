@@ -6,7 +6,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Group, Post
@@ -14,6 +14,7 @@ from posts.models import Group, Post
 User = get_user_model()
 
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(dir=settings.BASE_DIR))
 class YatubePagesTests(TestCase):
     """The class tests the correctness of template names and
     the transmission of the correct context."""
@@ -21,7 +22,6 @@ class YatubePagesTests(TestCase):
     def setUpClass(cls):
         """Creating a test object."""
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.group = Group.objects.create(
             title='Тестовый заголовок',
             slug='test-slug',
@@ -49,7 +49,7 @@ class YatubePagesTests(TestCase):
         cls.new_group = Group.objects.create(title='Тест', slug='test')
         cls.templates_pages_names = {
             'posts/index.html': reverse('index'),
-            'group.html': (
+            'posts/group.html': (
                 reverse('group_posts', kwargs={'slug': 'test-slug'})
             ),
             'posts/new.html': reverse('new_post'),
@@ -57,8 +57,8 @@ class YatubePagesTests(TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super().tearDownClass()
         shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+        super().tearDownClass()
 
     def setUp(self):
         """Setting the data for testing."""
@@ -148,7 +148,7 @@ class YatubePagesTests(TestCase):
         to the template of the post editing page."""
         response = self.post_author.get(
             reverse('post_edit', args=(
-                f'{YatubePagesTests.post.author.username}',
+                YatubePagesTests.post.author.username,
                 YatubePagesTests.post.id
             )
             )
@@ -166,10 +166,7 @@ class YatubePagesTests(TestCase):
         """The function checks the contents of the passed context dictionary
         to the author's profile page template."""
         response = self.authorized_client.get(
-            reverse('profile', args=[
-                f'{YatubePagesTests.post.author.username}'
-            ]
-            )
+            reverse('profile', args=[YatubePagesTests.post.author.username])
         )
         self.assertEqual(
             response.context['author'].username,
@@ -186,7 +183,7 @@ class YatubePagesTests(TestCase):
         to the page template of an individual author's post."""
         response = self.authorized_client.get(
             reverse('post_view', args=(
-                f'{YatubePagesTests.post.author.username}',
+                YatubePagesTests.post.author.username,
                 YatubePagesTests.post.id
             )
             )
@@ -244,31 +241,21 @@ class FollowAndCommentViewsTest(TestCase):
         self.another_authorized_client = Client()
         self.another_authorized_client.force_login(self.another_user)
         self.authorized_client.get(
-            reverse('profile_follow', args=[
-                f'{FollowAndCommentViewsTest.post.author.username}'
-            ]
-            )
+            reverse('profile_follow', args=[FollowAndCommentViewsTest.user])
         )
 
     def test_authorized_user_subscribe(self):
         """The function checks whether an authorized user can subscribe to other users
         and remove them from subscriptions."""
-        self.assertEqual(
-            FollowAndCommentViewsTest.post.author.following.count(), 1
-        )
+        self.assertEqual(FollowAndCommentViewsTest.user.following.count(), 1)
 
     def test_authorized_user_remove_subscriptions(self):
         """The function checks whether an authorized user can subscribe to other users
         and remove them from subscriptions."""
         self.authorized_client.get(
-            reverse('profile_unfollow', args=[
-                f'{FollowAndCommentViewsTest.post.author.username}'
-            ]
-            )
+            reverse('profile_unfollow', args=[FollowAndCommentViewsTest.user])
         )
-        self.assertEqual(
-            FollowAndCommentViewsTest.post.author.following.count(), 0
-        )
+        self.assertEqual(FollowAndCommentViewsTest.user.following.count(), 0)
 
     def test_new_user_entry_appears_in_following(self):
         """The function checks whether a new user entry appears in the feed
@@ -289,7 +276,7 @@ class FollowAndCommentViewsTest(TestCase):
         on posts."""
         response = self.authorized_client.get(
             reverse('add_comment', args=(
-                f'{FollowAndCommentViewsTest.post.author.username}',
+                FollowAndCommentViewsTest.user,
                 FollowAndCommentViewsTest.post.id
             )
             )
@@ -301,7 +288,7 @@ class FollowAndCommentViewsTest(TestCase):
         on posts."""
         response = self.guest_client.get(
             reverse('add_comment', args=(
-                f'{FollowAndCommentViewsTest.post.author.username}',
+                FollowAndCommentViewsTest.user,
                 FollowAndCommentViewsTest.post.id
             )
             )
