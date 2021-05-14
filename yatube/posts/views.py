@@ -139,14 +139,12 @@ def add_comment(request, username, post_id):
     and saves changes."""
     post = get_object_or_404(Post, id=post_id, author__username=username)
     form = CommentForm(request.POST or None)
-    if request.method == 'GET' or not form.is_valid():
-        return redirect('post_view', username, post.id)
-    else:
+    if request.method == 'POST' and form.is_valid():
         comment = form.save(commit=False)
         comment.post = post
         comment.author = request.user
         comment.save()
-        return redirect('post_view', username, post.id)
+    return redirect('post_view', username, post.id)
 
 
 @login_required
@@ -163,8 +161,8 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     """The function subscribes to the author."""
-    user = User.objects.filter(username=username).first()
-    if request.user.username != username and user:
+    if request.user.username != username:
+        user = get_object_or_404(User, username=username)
         Follow.objects.get_or_create(user=request.user, author=user)
     return redirect('profile', username)
 
@@ -172,7 +170,6 @@ def profile_follow(request, username):
 @login_required
 def profile_unfollow(request, username):
     """The function removes the subscriber from the author."""
-    user = User.objects.filter(username=username).first()
-    if user:
-        Follow.objects.filter(user=request.user, author=user).delete()
+    user = get_object_or_404(User, username=username)
+    Follow.objects.filter(user=request.user, author=user).delete()
     return redirect('profile', username)

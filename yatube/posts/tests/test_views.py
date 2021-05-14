@@ -241,21 +241,31 @@ class FollowAndCommentViewsTest(TestCase):
         self.another_authorized_client = Client()
         self.another_authorized_client.force_login(self.another_user)
         self.authorized_client.get(
-            reverse('profile_follow', args=[FollowAndCommentViewsTest.user])
+            reverse('profile_follow', args=[
+                FollowAndCommentViewsTest.user.username
+            ]
+            )
         )
 
     def test_authorized_user_subscribe(self):
         """The function checks whether an authorized user can subscribe to other users
         and remove them from subscriptions."""
-        self.assertEqual(FollowAndCommentViewsTest.user.following.count(), 1)
+        self.assertEqual(
+            FollowAndCommentViewsTest.post.author.following.count(), 1
+        )
 
     def test_authorized_user_remove_subscriptions(self):
         """The function checks whether an authorized user can subscribe to other users
         and remove them from subscriptions."""
         self.authorized_client.get(
-            reverse('profile_unfollow', args=[FollowAndCommentViewsTest.user])
+            reverse('profile_unfollow', args=[
+                FollowAndCommentViewsTest.user.username
+            ]
+            )
         )
-        self.assertEqual(FollowAndCommentViewsTest.user.following.count(), 0)
+        self.assertEqual(
+            FollowAndCommentViewsTest.post.author.following.count(), 0
+        )
 
     def test_new_user_entry_appears_in_following(self):
         """The function checks whether a new user entry appears in the feed
@@ -276,7 +286,7 @@ class FollowAndCommentViewsTest(TestCase):
         on posts."""
         response = self.authorized_client.get(
             reverse('add_comment', args=(
-                FollowAndCommentViewsTest.user,
+                FollowAndCommentViewsTest.user.username,
                 FollowAndCommentViewsTest.post.id
             )
             )
@@ -288,7 +298,7 @@ class FollowAndCommentViewsTest(TestCase):
         on posts."""
         response = self.guest_client.get(
             reverse('add_comment', args=(
-                FollowAndCommentViewsTest.user,
+                FollowAndCommentViewsTest.user.username,
                 FollowAndCommentViewsTest.post.id
             )
             )

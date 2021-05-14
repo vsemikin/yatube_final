@@ -6,8 +6,7 @@
 {% cache 20 index_page %}
 
 {% block content %}
-
-    {% include "includes/menu.html" with index=True %}
+    {% include "includes/menu.html" with follow=True %}
     <!-- Вывод ленты записей -->
     {% for post in page %}
         <!-- Вот он, новый include! -->
@@ -17,7 +16,6 @@
     {% if page.has_other_pages %}
         {% include "includes/paginator.html" with items=page paginator=paginator%}
     {% endif %}
-
 {% endblock %}
 
 {% endcache %}
